@@ -2,7 +2,6 @@ from itertools import product, permutations
 from copy import deepcopy
 from decimal import Decimal
 
-from tree import Tree, Node
 from actions import TurnFinisher, Placement, Movement, Activation
 
 
@@ -31,17 +30,19 @@ class Engine:
         self.bestPlay = worstSoFar
 
     def best(self, pl, board, depth, alpha, beta):
-        if board.checkWin(1 - pl): return "", max(-1000, alpha)
+        # DOESN'T SHOW THE CHECKMATE MOVE!
+        # random enemy letter appears on the base
+        if board.winner == pl: return "", 1000
+        if board.winner == 1 - pl: return "", max(-1000, alpha)
         if depth == 0: return "", evaluate(pl, board)
-        # no need to do it: if bestSoFar remains None then len(actions) == 0
-        # if len(actions) == 0: return "", max(-1000, alpha)
         bestSoFar = None
         for action in allActions(pl, board):
             action.execute(board)
             cont, val = self.best(pl, board, depth, alpha, beta)
             if val >= beta:
                 action.goBack(board)
-                return "", beta
+                # here should be the problem
+                return action.string + " " + cont, beta
             if val > alpha:
                 alpha = val
             if bestSoFar is None or bestSoFar[1] < val:
@@ -53,7 +54,8 @@ class Engine:
             action.goBack(board)
             val = -val
             if val >= beta:
-                return "", beta
+                # here should be the problem
+                return action.string + " " + cont, beta
             if val > alpha:
                 alpha = val
             if bestSoFar is None or bestSoFar[1] < val:
@@ -77,6 +79,7 @@ def allActions(pl, board):
         yield from allPlacements(pl, board)
     for piece in board.players[pl].placed:
         if piece not in board.players[pl].played:
+            # sometimes gives error: not in list --> it's in .placed but it was not removed or it should be on the board but it wasn't added
             index = board.pos.index((pl, piece))
             yield from allMovements(pl, piece, index, board)
             yield from filter(None, allActivations(pl, piece, index, board, 'ruld'))
@@ -194,7 +197,7 @@ def allM(pl, index, board, ruld):
     ''' Yields all legal activations of M
     (if the adjacent square is occupied and the additional conditions from the mimed piece are fulfilled)
     '''
-
+    # PROBLEM
     adjIndexes = board.getAdjacents(index)
     for piece in set([board.pos[aC][1] for aC in adjIndexes]):
         if piece not in [' ', 'M']:
@@ -212,7 +215,7 @@ def allH(pl, index, board, ruld):
     ''' Yields all legal activations of H
     (if the adjacent square is occupied and the additional conditions from the hacked piece are fulfilled)
     '''
-
+    # PROBLEM
     for direction in ruld:
         adjIndex = board.dir2index(pl, index, direction)
         if adjIndex >= 0:
@@ -227,33 +230,7 @@ def allH(pl, index, board, ruld):
                     activation.string = 'H' + direction + activation.string
                     yield activation
 
-
-def allPlays(pl, board, actions):
-    ''' Returns all legal plays for player pl, removing duplicates,
-    i.e. different plays which lead to the same position and players situation).
-    If it founds a mate it returns only [that] though.
-    '''
-
-    plays = []
-    checks = deepcopy(actions)
-    while checks:
-        thisPlay = checks.pop(0)
-        if thisPlay[1].winner is None:
-            copy = deepcopy(thisPlay)
-            newActions = allActions(pl, copy[1])
-            if newActions:
-                checks += [[copy[0] + ' ' + action[0], action[1]] for action in newActions]
-        else:
-            return [thisPlay]
-        thisPlay[1].checkSurrounded(pl)
-        thisPlay[1].players[pl].played = []
-        # Append only if not duplicate.
-        # If duplicate no need to check if play is shorter since plays is length-ordered anyways.
-        if all(play[1] != thisPlay[1] for play in plays):
-            plays.append(thisPlay)
-    return plays
-
-
+# PROBLEM
 def discardCases(pl, board):
     ''' Yields two boards.
     In each board the opponent has discarded a different card.

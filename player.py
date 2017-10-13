@@ -39,6 +39,8 @@ class Player:
 
         if self.pile:
             self.hand.append(self.pile.pop())
+            return True
+        return False
 
     def undraw(self):
 
@@ -53,6 +55,7 @@ class Player:
 
         if len(self.hand) == 2:
             index = choice([0,1])
+            # here could be the problem
             return (index, self.hand.pop(index))
 
 

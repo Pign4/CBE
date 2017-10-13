@@ -4,6 +4,7 @@ class TurnFinisher:
         self.pl = pl
         self.played = None
         self.discard = None
+        self.draw = False
         self.canPlace = None
         self.destroyed = None
 
@@ -16,7 +17,7 @@ class TurnFinisher:
         board.players[self.pl].played = []
         self.discard = board.players[self.pl].discard()
         # start of next turn
-        board.players[1 - self.pl].draw()
+        self.draw = board.players[1 - self.pl].draw()
         self.canPlace = board.players[1 - self.pl].canPlace
         board.players[1 - self.pl].canPlace = True if board.players[1 - self.pl].hand \
                                                    else False
@@ -28,12 +29,12 @@ class TurnFinisher:
         board.winner = None
         for (piece, index) in self.destroyed:
             board.pos[index] = (self.pl, piece)
-            board.players[self.pl].append(piece)
+            board.players[self.pl].placed.append(piece)
         board.players[1 - self.pl].canPlace = self.canPlace
-        board.players[1 - self.pl].undraw()
+        if self.draw: board.players[1 - self.pl].undraw()
         # undo end of turn
         if self.discard:
-            board.players[self.pl].hand.insert(self.discard[0], self.discard[1])
+            board.players[self.pl].hand.insert(*self.discard)
         board.players[self.pl].played = self.played
 
 
@@ -51,17 +52,13 @@ class Placement:
         return self.string
 
     def execute(self, board):
-        print()
-        for x in range(4):
-            for value in board.pos[4*x:4*x+4]:
-                print(value, end = '')
-            print()
         self.handIndex = board.players[self.pl].place(self.piece)
         board.pos[self.square] = (self.pl, self.piece)
         for adjIndex in board.getAdjacents(self.square):
-            if board.pos[adjIndex][0] == 1 - self.pl:
-                if board.isSurrounded(adjIndex, self.pl):
-                    destroyed.append((board.pos[adjIndex][1], adjIndex))
+            color, piece = board.pos[adjIndex]
+            if color == 1 - self.pl:
+                if board.isSurrounded(adjIndex, self.pl, piece):
+                    self.destroyed.append((piece, adjIndex))
 
     def goBack(self, board):
         # undo placement
@@ -74,7 +71,7 @@ class Placement:
         for (piece, index) in self.destroyed:
             # should I care about piece position inside .placed?
             board.players[1 - self.pl].placed.append(piece)
-            board.pos[index] = piece
+            board.pos[index] = (1 - self.pl, piece)
 
 
 class Movement:
@@ -93,14 +90,15 @@ class Movement:
     def execute(self, board):
         board.players[self.pl].played.append(self.piece)
         board.pos[self.index] = (2,' ')
-        if self.newIndex != -1:
+        if self.newIndex == -1:
+            board.players[self.pl].destroy(self.piece)
+        else:
             board.pos[self.newIndex] = (self.pl, self.piece)
             for adjIndex in board.getAdjacents(self.newIndex):
-                if board.pos[adjIndex][0] == 1 - self.pl:
-                    if board.isSurrounded(adjIndex, self.pl):
-                        destroyed.append((board.pos[adjIndex][1], adjIndex))
-        else:
-            board.players[self.pl].destroy(self.piece)
+                color, piece = board.pos[adjIndex]
+                if color == 1 - self.pl:
+                    if board.isSurrounded(adjIndex, self.pl, piece):
+                        self.destroyed.append((piece, adjIndex))
         board.checkWin(self.pl)
 
     def goBack(self, board):
@@ -131,14 +129,14 @@ class Activation:
 
     def execute(self, board):
         board.players[self.pl].played.append(self.piece)
-        if self.newIndex != -1:
+        if self.newIndex == -1:
+            self.destroyed = board.pos[self.index]
+            board.pos[self.index] = (2,' ')
+            board.players[self.destroyed[0]].destroy(self.destroyed[1])
+        else:
             board.pos[self.index], board.pos[self.newIndex] \
             = board.pos[self.newIndex], board.pos[self.index]
             self.destroyed = board.checkSurrounded(1 - self.pl)
-        else:
-            dPiece, board.pos[self.index] = board.pos[self.index], (2,' ')
-            board.players[dPiece[0]].destroy(dPiece[1])
-            self.destroyed = dPiece
         board.checkWin(self.pl)
 
     def goBack(self, board):

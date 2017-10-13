@@ -37,13 +37,13 @@ class Board:
         return destroyed
 
 
-    def isSurrounded(self, index, pl):
+    def isSurrounded(self, index, pl, piece):
         ''' Returns True if surrounded by pl pieces, else False '''
 
         aIndexes = self.getAdjacents(index)
         if all(self.pos[aIndex][0] == pl for aIndex in aIndexes):
+            self.players[1 - pl].destroy(piece)
             self.pos[index] = (2,' ')
-            self.players[pl].destroy(piece)
             return True
         return False
 
