@@ -3,6 +3,8 @@ from copy import deepcopy
 from decimal import Decimal
 
 from actions import TurnFinisher, Placement, Movement, Activation
+from printfs import show
+import pdb
 
 
 class Engine:
@@ -21,17 +23,17 @@ class Engine:
         self.actions = sorted(allActions(pl, board), key = lambda action: action.piece)
 
     def worstCase(self, pl, board, depth):
-        worstSoFar = ("", 1000)
+        # problems:
+        # 1. what if checkmate is not inevitable ...?
+        # 2. doesn't perform shortest play
+        worstSoFar = ("", 1000001)
         for n, newBoard in enumerate(allCases(pl, board)):
             cont, val = self.best(pl, board, depth, -1000000, 1000000)
             if val < worstSoFar[1]:
                 worstSoFar = (cont, val)
-            break
         self.bestPlay = worstSoFar
 
     def best(self, pl, board, depth, alpha, beta):
-        # DOESN'T SHOW THE CHECKMATE MOVE!
-        # random enemy letter appears on the base
         if board.winner == pl: return "", 1000
         if board.winner == 1 - pl: return "", max(-1000, alpha)
         if depth == 0: return "", evaluate(pl, board)
@@ -41,12 +43,14 @@ class Engine:
             cont, val = self.best(pl, board, depth, alpha, beta)
             if val >= beta:
                 action.goBack(board)
-                # here should be the problem
                 return action.string + " " + cont, beta
             if val > alpha:
                 alpha = val
             if bestSoFar is None or bestSoFar[1] < val:
                 bestSoFar = (action.string + " " + cont, val)
+            if bestSoFar[1] == 1000:
+                action.goBack(board)
+                break
             finish = TurnFinisher(pl)
             finish.execute(board)
             cont, val = self.best(1 - pl, board, depth - 1, -beta, -alpha)
@@ -54,12 +58,13 @@ class Engine:
             action.goBack(board)
             val = -val
             if val >= beta:
-                # here should be the problem
                 return action.string + " " + cont, beta
             if val > alpha:
                 alpha = val
             if bestSoFar is None or bestSoFar[1] < val:
                 bestSoFar = (action.string + " ; " + cont, val)
+            if bestSoFar[1] == 1000:
+                break
         return bestSoFar or ("", max(-1000, alpha))
 
 
@@ -197,7 +202,7 @@ def allM(pl, index, board, ruld):
     ''' Yields all legal activations of M
     (if the adjacent square is occupied and the additional conditions from the mimed piece are fulfilled)
     '''
-    # PROBLEM
+
     adjIndexes = board.getAdjacents(index)
     for piece in set([board.pos[aC][1] for aC in adjIndexes]):
         if piece not in [' ', 'M']:
@@ -215,7 +220,7 @@ def allH(pl, index, board, ruld):
     ''' Yields all legal activations of H
     (if the adjacent square is occupied and the additional conditions from the hacked piece are fulfilled)
     '''
-    # PROBLEM
+
     for direction in ruld:
         adjIndex = board.dir2index(pl, index, direction)
         if adjIndex >= 0:

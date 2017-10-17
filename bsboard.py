@@ -9,6 +9,10 @@ class Board:
         '''
 
         self.size = size
+        # self.pos = [(2, ' '),(2, ' '),(0, 'A'),(2, ' '),
+        #             (2, ' '),(1, 'T'),(2, ' '),(2, ' '),
+        #             (2, ' '),(2, ' '),(2, ' '),(2, ' '),
+        #             (2, ' '),(2, ' '),(2, ' '),(2, ' ')]
         self.pos = [(2, ' ')] * size**2
         self.startSquares = ([8,13],[2,7]) if size == 4 else ([10,16,22], [2,8,14])
         self.players = [Player(0, pieces), Player(1, pieces)]

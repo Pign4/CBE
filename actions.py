@@ -108,10 +108,10 @@ class Movement:
         if self.newIndex == -1:
             board.players[self.pl].placed.append(self.piece)
         else:
-            board.pos[self.newIndex] = (2,' ')
             for (piece, index) in self.destroyed:
                 board.players[1 - self.pl].placed.append(piece)
                 board.pos[index] = (1 - self.pl, piece)
+            board.pos[self.newIndex] = (2,' ')
 
 
 class Activation:
@@ -146,8 +146,8 @@ class Activation:
             board.pos[self.index] = self.destroyed
             board.players[self.destroyed[0]].placed.append(self.destroyed[1])
         else:
-            board.pos[self.index], board.pos[self.newIndex] \
-            = board.pos[self.newIndex], board.pos[self.index]
             for (piece, index) in self.destroyed:
                 board.players[1 - self.pl].placed.append(piece)
                 board.pos[index] = (1 - self.pl, piece)
+            board.pos[self.index], board.pos[self.newIndex] \
+            = board.pos[self.newIndex], board.pos[self.index]

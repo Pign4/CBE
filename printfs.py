@@ -34,19 +34,19 @@ def type_of_game():
         exclude = set(input('Which {} piece(s) to exclude? '.format(8-n)).upper())
     exclude |= set(sample(letters - exclude, 8-n-len(exclude)))
 
-    # pc = None
-    # while pc is None:
-    #     check = input("Which player should the computer help? (1, 2 or BOTH) ")
-    #     if check == "1":
-    #         pc = 0
-    #     elif check == "2":
-    #         pc = 1
-    #     elif check == "BOTH":
-    #         pc = 2
-    #     else:
-    #         print("The answer must be 1, 2 or BOTH!")
+    pc = None
+    while pc is None:
+        check = input("Which player should the computer help? (1, 2 or BOTH) ")
+        if check == "1":
+            pc = 0
+        elif check == "2":
+            pc = 1
+        elif check == "BOTH":
+            pc = 2
+        else:
+            print("The answer must be 1, 2 or BOTH!")
 
-    return letters - exclude, size, 2 # pc
+    return letters - exclude, size, pc
 
 
 def printGame(pl, board):
