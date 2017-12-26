@@ -105,7 +105,6 @@ class Game:
         discarding if necessary, the opponent player's turn is started.
         '''
 
-
         if self.board.winner is not None:
             system('clear')
             print('\nThe ' + self.board.winnerString() + ' player wins the game!\n')

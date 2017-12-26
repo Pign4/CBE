@@ -71,8 +71,8 @@ def show(pl, board):
     #must improve
     bg2 = paint(3,'  ')
     bg9 = paint(3,'         ')
-    bgline = paint(3,' '*(56-9*(5-board.size)))
-    rPosition = board.pos[::1-2*pl]
+    bgline = paint(3, ' ' * (56 - 9 * (5 - board.size)))
+    rPosition = board.pos[:: 1 - 2 * pl]
     rPosition = [rPosition[x:y] for (x,y) in [(0,4),(4,8),(8,12),(12,16)]]
     rNumbers = list(map(lambda number: paint(3, '    '+str(number)+'    '),range(1,board.size+1)))[::2*pl-1]
     rLetters = list(map(lambda x: paint(3,'   '+x+'   '), 'abcde'[:board.size]))[::1-2*pl]
